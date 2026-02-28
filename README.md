@@ -1,7 +1,5 @@
 # 🖱️ ESP32 BLE Mouse — Proof of Concept Manipulasi Aplikasi Presensi BPS
 
-> **Proof of Concept** | Riset Keamanan | Pengungkapan Bertanggung Jawab
-
 ---
 
 ## ⚠️ Disclaimer
