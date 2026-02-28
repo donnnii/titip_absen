@@ -4,26 +4,25 @@
 
 ## ⚠️ Disclaimer
 
-Proyek ini adalah **proof of concept untuk tujuan riset keamanan semata**. Proyek ini mendemonstrasikan celah keamanan pada aplikasi presensi Android milik Badan Pusat Statistik (BPS) yang hanya mengandalkan pemeriksaan keamanan di sisi perangkat. Tujuannya adalah untuk menyoroti kelemahan tersebut dan mendorong pengembang agar mengimplementasikan metode verifikasi yang lebih kuat dari sisi pengguna.
-
-**Jangan gunakan ini untuk melakukan kecurangan, memalsukan catatan kehadiran, atau melanggar ketentuan layanan apapun.**
+Proyek ini merupakan **proof of concept untuk demonstrasi kelemahan aplikasi**. Proyek ini mendemonstrasikan kelemahan pada aplikasi presensi Android Badan Pusat Statistik (BPS) yang hanya mengandalkan pemeriksaan keamanan di sisi perangkat. Tujuannya adalah untuk menyoroti kelemahan tersebut dan mendorong agar diimplementasikan metode verifikasi yang lebih kuat dari sisi pengguna.
 
 ---
 
 ## 📖 Latar Belakang
 
-Aplikasi **Presensi BPS** (Badan Pusat Statistik) mengimplementasikan beberapa langkah keamanan untuk mencegah kecurangan presensi, antara lain:
+Aplikasi **Presensi BPS** telah mengimplementasikan beberapa langkah keamanan untuk mencegah kecurangan presensi, antara lain:
 
-- 📍 Deteksi GPS palsu / mock location
-- 🛠️ Deteksi developer options aktif
+Dari sisi perangkat
+- 📍 Deteksi Fake GPS / mock location
+- 🛠️ Deteksi developer options aktif untuk mencegah otomatisasi dengan ADB
 - 🔓 Deteksi root / ADB
-- 📱 Pemeriksaan integritas perangkat
+- 📱 Rolling enkripsi untuk menghindari man-in-the-middle attack
 
-Semua pemeriksaan ini bersifat **device-level** — mereka memeriksa kondisi sistem Android. Namun, terdapat celah mendasar yang luput dari perhatian:
+Semua kemanan ini masih bersifat **device-level** — aplikasi memeriksa kondisi sistem Android. Namun, terdapat kekurangan mendasar yang luput dari perhatian:
 
 > **Aplikasi tidak dapat membedakan antara sentuhan jari manusia dengan input dari mouse Bluetooth (BLE HID).**
 
-Proyek ini mengeksploitasi celah tersebut menggunakan **mikrokontroler ESP32** yang berperan sebagai mouse BLE HID, dikendalikan melalui antarmuka web, untuk mengotomasi ketukan dan gestur pada perangkat Android — tanpa memicu satupun pemeriksaan keamanan di atas.
+Project ini mengeksploitasi celah tersebut menggunakan **ESP32** yang berperan sebagai mouse BLE HID, dikendalikan melalui antarmuka web (yang kemudian dapat dikembangkan unutk kendali via internet atau dengan trigger waktu jam tertentu), untuk mengotomasi touch pada perangkat Android.
 
 ---
 
@@ -40,7 +39,7 @@ Proyek ini mengeksploitasi celah tersebut menggunakan **mikrokontroler ESP32** y
 │    tersimpan    │                                        │     keamanan         │
 └────────┬────────┘                                        │                      │
          │                                                 │  ❌ Tidak dapat      │
-         │ HTTP (WiFi lokal)                               │     mendeteksi       │
+         │ HTTP (WiFi)                                     │     mendeteksi       │
          ▼                                                 │     input mouse BLE  │
 ┌─────────────────┐                                        └──────────────────────┘
 │   Trigger UI    │
@@ -49,10 +48,10 @@ Proyek ini mengeksploitasi celah tersebut menggunakan **mikrokontroler ESP32** y
 └─────────────────┘
 ```
 
-### Alur Serangan
+### Alur Kerja
 
 1. ESP32 terhubung ke WiFi dan menjalankan web server di IP statis
-2. Pengguna membuka web UI dari browser manapun di jaringan yang sama
+2. Pengguna membuka web UI dari browser
 3. Urutan gerakan mouse yang telah direkam tersimpan di ESP32 (tidak hilang saat restart)
 4. Saat dipicu (tombol web / tombol BOOT / perintah Serial), ESP32 memutar ulang urutan tersebut via BLE
 5. Android menerima event HID mouse standar — tidak dapat dibedakan dari mouse sungguhan
@@ -72,25 +71,21 @@ Proyek ini mengeksploitasi celah tersebut menggunakan **mikrokontroler ESP32** y
 
 ---
 
-## 🛠️ Perangkat Keras yang Dibutuhkan
+## 🛠️ Perangkat yang Dibutuhkan
 
 - ESP32 Dev Module (varian apapun yang mendukung BLE)
 - Kabel USB (untuk flashing dan konfigurasi Serial)
 - Perangkat Android dengan Bluetooth
 
-**Total biaya: ~Rp 50.000 – 75.000**
+**Total biaya: ~Rp 40.000 – 60.000**
 
 ---
 
 ## 📦 Dependensi Software
 
-Install melalui Arduino Library Manager:
-
 | Library | Author | Fungsi |
 |---|---|---|
 | `ESP32-BLE-Mouse` | T-vK | Emulasi mouse HID via BLE |
-
-Sudah tersedia di ESP32 Arduino core (tidak perlu install):
 
 - `WebServer` — menyajikan UI pemicu
 - `Preferences` — menyimpan sequence ke flash
@@ -114,7 +109,7 @@ Sudah tersedia di ESP32 Arduino core (tidak perlu install):
 
 ### 2. Konfigurasi WiFi (via Serial)
 
-Buka Serial Monitor di **115200 baud**, line ending = **Newline**:
+Buka Koneksi Serial (via USB) atur baud rate ke **115200** dan jalankan:
 
 ```
 SET SSID NamaWiFiAnda
@@ -184,12 +179,12 @@ Buka Serial Monitor di **115200 baud**, line ending = **Newline**. Ketik `HELP` 
 
 ## 📋 Upload Sequence via Python
 
-Daripada mengetik satu per satu, gunakan script ini dari PC:
+Setelah menentukan urutan dimana posisi layar yang akan dipencet, upload sequence menggunakan script ini :
 
 ```python
 import serial, time
 
-PORT = "COM3"   # sesuaikan dengan port di Arduino IDE → Tools → Port
+PORT = "COM4"   # sesuaikan dengan port di Arduino IDE → Tools → Port
 BAUD = 115200
 
 commands = [
@@ -235,8 +230,7 @@ python upload_sequence.py
 
 ---
 
-## 🔴 Metode Pemicu
-
+## 🔴 Trigger
 Sequence dapat dipicu dengan **3 cara**:
 
 | Metode | Cara |
@@ -247,59 +241,32 @@ Sequence dapat dipicu dengan **3 cara**:
 
 ---
 
-## 🛡️ Rekomendasi Mitigasi untuk Pengembang Aplikasi
-
-PoC ini mengungkap celah keamanan yang nyata dan banyak diabaikan. Berikut rekomendasi untuk menutup celah tersebut:
+## 🛡️ Rekomendasi Mitigasi
 
 ### 1. 🤳 Verifikasi Biometrik
-Wajibkan pengenalan wajah atau autentikasi sidik jari **pada saat melakukan presensi**. Hal ini tidak dapat diotomasi via input mouse.
+Mewajibkan pengenalan wajah atau autentikasi sidik jari **pada saat melakukan presensi**. Hal ini tidak dapat diotomasi via input mouse.
 
 ```
 Alur saat ini:  Buka App → Cek GPS → Tap Presensi ✅ (rentan)
 Alur aman:      Buka App → Cek GPS → Scan Wajah → Tap Presensi ✅
 ```
 
-### 2. 🎲 Tantangan Acak / CAPTCHA
+### 2. 🎲 Random Challenge / CAPTCHA
 Tampilkan tantangan yang diacak dan membutuhkan respons kognitif manusia yang asli:
 - Tap **lingkaran merah** di antara 5 bentuk acak
 - Masukkan **kode 4 digit** yang ditampilkan di layar
 - Selesaikan operasi matematika sederhana
 
-Sequence mouse yang telah direkam tidak dapat beradaptasi dengan tantangan acak.
+Sequence mouse yang telah direkam tidak dapat beradaptasi dengan random challenge.
 
-### 3. 📡 Deteksi Sumber Input
-API `MotionEvent` Android mengekspos sumber input melalui `event.getSource()`. Aplikasi dapat memeriksa:
+### 3. 📡 Deteksi Input
+API `MotionEvent` Android mengekspos input melalui `event.getSource()`. Aplikasi dapat memeriksa:
 
 ```java
 if (event.getSource() == InputDevice.SOURCE_MOUSE) {
     // Tolak — ini adalah mouse, bukan jari
     return;
 }
-```
-
-Ini secara langsung mendeteksi dan memblokir input mouse BLE.
-
-### 4. ⏱️ Biometrik Perilaku
-Analisis pola sentuhan: tekanan, ukuran area sentuh, kecepatan gesekan, dan getaran mikro. Input mouse menghasilkan gerakan yang terlalu sempurna, lurus, dan tepat piksel — secara statistik dapat dibedakan dari sentuhan manusia.
-
-### 5. 🔐 Verifikasi Sisi Server
-Jangan pernah mempercayai klien sepenuhnya. Implementasikan pemeriksaan sisi server:
-- Validasi waktu presensi terhadap jadwal kerja
-- Tandai pola presensi yang tidak masuk akal secara statistik (waktu yang sama setiap hari hingga detik)
-- Korelasikan dengan lokasi jaringan/WiFi selain GPS
-
----
-
-## 📊 Ringkasan Serangan vs. Pertahanan
-
-```
-CELAH YANG DIEKSPLOITASI              MITIGASI YANG DIREKOMENDASIKAN
-────────────────────────────────────────────────────────────────────────
-Input Mouse BLE          ──────▶  Cek InputDevice.SOURCE_MOUSE
-Sequence Terekam         ──────▶  Tantangan acak / CAPTCHA
-Tanpa kehadiran fisik    ──────▶  Verifikasi biometrik (wajah / sidik jari)
-Pola waktu sempurna      ──────▶  Biometrik perilaku
-Eksekusi otomatis        ──────▶  Deteksi anomali sisi server
 ```
 
 ---
@@ -322,15 +289,3 @@ bot_absen/
 - [ESP32-BLE-Mouse Library](https://github.com/T-vK/ESP32-BLE-Mouse)
 - [Play Integrity API](https://developer.android.com/google/play/integrity)
 - [OWASP Mobile Security Testing Guide](https://owasp.org/www-project-mobile-security-testing-guide/)
-
----
-
-## 📜 Lisensi
-
-MIT License — lihat [LICENSE](LICENSE) untuk detail.
-
-Proyek ini dibagikan untuk **tujuan edukasi dan riset keamanan**. Penulis tidak mendukung penyalahgunaan.
-
----
-
-*Dibuat dengan ESP32 seharga Rp 50.000, banyak Serial.println(), dan kesadaran bahwa mikrokontroler murah dapat melewati sistem keamanan presensi instansi pemerintah.*
