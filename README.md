@@ -10,7 +10,7 @@
 
 ## ⚠️ Disclaimer
 
-Proyek ini merupakan **proof of concept untuk demonstrasi kelemahan aplikasi**. Proyek ini mendemonstrasikan kelemahan pada aplikasi presensi Android Badan Pusat Statistik (BPS) yang hanya mengandalkan pemeriksaan keamanan di sisi perangkat. Tujuannya adalah untuk menyoroti kelemahan tersebut dan mendorong agar diimplementasikan metode verifikasi yang lebih kuat dari sisi pengguna.
+Proyek ini merupakan **proof of concept untuk demonstrasi kelemahan** pada aplikasi presensi Android Badan Pusat Statistik (BPS), yang mengandalkan pemeriksaan keamanan di sisi perangkat. Tujuannya adalah untuk menyoroti kelemahan tersebut dan mendorong agar diimplementasikan metode verifikasi yang lebih kuat dari sisi pengguna.
 
 ---
 
@@ -28,15 +28,15 @@ Semua kemanan ini masih bersifat **device-level** — aplikasi memeriksa kondisi
 
 > **Aplikasi tidak dapat membedakan antara sentuhan jari manusia dengan input dari mouse Bluetooth (BLE HID).**
 
-Project ini mengeksploitasi celah tersebut menggunakan **ESP32** yang berperan sebagai mouse BLE HID, dikendalikan melalui antarmuka web (yang kemudian dapat dikembangkan unutk kendali via internet atau dengan trigger waktu jam tertentu), untuk mengotomasi touch pada perangkat Android.
+Project ini mengeksploitasi celah tersebut menggunakan **ESP32** yang berperan sebagai mouse BLE HID, dikendalikan melalui antarmuka web (yang kemudian dapat dikembangkan untuk kendali via internet atau dengan trigger waktu jam tertentu), untuk mengotomasi "touch" pada perangkat Android melalui emulasi gerakan mouse bluetooth.
 
 ---
 
 ## 🏗️ Cara Kerja
 
 ```
-┌─────────────────┐       BLE HID Mouse (Bluetooth)      ┌──────────────────────┐
-│   ESP32 Dev     │ ───────────────────────────────────▶  │  Perangkat Android   │
+┌─────────────────┐       BLE HID Mouse (Bluetooth)        ┌──────────────────────┐
+│   ESP32 Dev     │ ───────────────────────────────────▶   │  Perangkat Android   │
 │   Module        │                                        │  (Aplikasi Presensi  │
 │                 │                                        │       BPS)           │
 │  - Web Server   │                                        │                      │
@@ -57,7 +57,7 @@ Project ini mengeksploitasi celah tersebut menggunakan **ESP32** yang berperan s
 ### Alur Kerja
 
 1. ESP32 terhubung ke WiFi dan menjalankan web server di IP statis
-2. Pengguna membuka web UI dari browser
+2. Pengguna membuka web UI dari browser/ trigger lainnya
 3. Urutan gerakan mouse yang telah direkam tersimpan di ESP32 (tidak hilang saat restart)
 4. Saat dipicu (tombol web / tombol BOOT / perintah Serial), ESP32 memutar ulang urutan tersebut via BLE
 5. Android menerima event HID mouse standar — tidak dapat dibedakan dari mouse sungguhan
