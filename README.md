@@ -2,6 +2,12 @@
 
 ---
 
+[![Watch the video](https://img.youtube.com/vi/QHkGmm26uvI/maxresdefault.jpg)](https://youtu.be/QHkGmm26uvI)
+
+### [Video Demonstrasi, Tonton di Youtube](https://youtu.be/QHkGmm26uvI)
+
+---
+
 ## ⚠️ Disclaimer
 
 Proyek ini merupakan **proof of concept untuk demonstrasi kelemahan aplikasi**. Proyek ini mendemonstrasikan kelemahan pada aplikasi presensi Android Badan Pusat Statistik (BPS) yang hanya mengandalkan pemeriksaan keamanan di sisi perangkat. Tujuannya adalah untuk menyoroti kelemahan tersebut dan mendorong agar diimplementasikan metode verifikasi yang lebih kuat dari sisi pengguna.
